@@ -3,7 +3,8 @@ export { canUserPurchaseGSuite } from './can-user-purchase-gsuite';
 export { getAnnualPrice } from './get-annual-price';
 export { getEligibleGSuiteDomain } from './get-eligible-gsuite-domain';
 export { getGSuiteMailboxCount } from './get-gsuite-mailbox-count';
-export { getLoginUrlWithTOSRedirect } from './get-login-url-with-tos-redirect';
+export { getGoogleAdminUrl, getGoogleAdminWithTosUrl } from './get-google-admin-url';
+export { getGmailUrl } from './get-gmail-url';
 export { getMonthlyPrice } from './get-monthly-price';
 export {
 	isGSuiteExtraLicenseProductSlug,

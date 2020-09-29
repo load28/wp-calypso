@@ -21,10 +21,11 @@ export default class Badge extends React.Component {
 	};
 
 	render() {
-		const { className, type } = this.props;
+		const { children, className, type } = this.props;
+
 		return (
 			<div className={ classNames( `badge badge--${ type }`, className ) }>
-				{ this.props.children }
+				{ children }
 			</div>
 		);
 	}

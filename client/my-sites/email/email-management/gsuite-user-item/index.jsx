@@ -8,9 +8,12 @@ import { useTranslate } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
+import Badge from 'calypso/components/badge';
 import { Button } from '@automattic/components';
 import ExternalLink from 'calypso/components/external-link';
-import PendingGSuiteTosNoticeDialog from 'calypso/my-sites/domains/components/domain-warnings/pending-gsuite-tos-notice-dialog';
+import { getGmailUrl, getGoogleAdminUrl } from 'calypso/lib/gsuite';
+import PendingGSuiteTosNoticeDialog
+	from 'calypso/my-sites/domains/components/domain-warnings/pending-gsuite-tos-notice-dialog';
 
 /**
  * Style dependencies
@@ -20,47 +23,91 @@ import './style.scss';
 function GSuiteUserItem( props ) {
 	const translate = useTranslate();
 	const [ dialogVisible, setDialogVisible ] = useState( false );
-	const onFixClickHandler = ( e ) => {
-		e.preventDefault();
+
+	const onFixClickHandler = ( event ) => {
+		event.preventDefault();
+
 		setDialogVisible( true );
 	};
+
 	const onCloseClickHandler = () => {
 		setDialogVisible( false );
 	};
 
-	const getLoginLink = () => {
-		const { email, domain } = props.user;
-		return `https://accounts.google.com/AccountChooser?Email=${ email }&service=CPanel&continue=https://admin.google.com/a/${ domain }`;
+	const renderBadge = () => {
+		if ( ! props.user.is_admin ) {
+			return;
+		}
+
+		return (
+			<Badge type="info">
+				{ translate( 'Admin', { context: 'Noun: A user role displayed in a badge' } ) }
+			</Badge>
+		);
 	};
 
-	const renderManage = () => {
+	const renderMailboxLink = () => {
+		const { isSubscriptionActive, onClick, user } = props;
+
+		if ( ! isSubscriptionActive ) {
+			return;
+		}
+
 		return (
 			<ExternalLink
 				icon
-				className="gsuite-user-item"
-				href={ getLoginLink() }
-				onClick={ props.onClick }
+				href={ getGmailUrl( user.email ) }
+				onClick={ onClick }
 				target="_blank"
 				rel="noopener noreferrer"
+				title={ translate( 'Go to Gmail to access your emails' ) }
 			>
-				{ translate( 'Manage', { context: 'Login to G Suite Manage' } ) }
+				{ translate( 'Mailbox', { context: 'Link pointing to Gmail' } ) }
 			</ExternalLink>
 		);
 	};
 
-	const renderFix = () => {
+	const renderManageLink = () => {
+		const { isSubscriptionActive, onClick, user } = props;
+
+		if ( ! isSubscriptionActive || ! user.is_admin ) {
+			return;
+		}
+
+		return (
+			<ExternalLink
+				icon
+				href={ getGoogleAdminUrl( user.email ) }
+				onClick={ onClick }
+				target="_blank"
+				rel="noopener noreferrer"
+				title={ translate( 'Go to Google Admin to manage your G Suite account' ) }
+			>
+				{ translate( 'Manage', { context: 'Link pointing to Google Admin' } ) }
+			</ExternalLink>
+		);
+	};
+
+	const renderFinishSetupButton = () => {
+		const { isSubscriptionActive, siteSlug, user } = props;
+
+		if ( isSubscriptionActive || ! user.is_admin || user.agreed_to_terms ) {
+			return;
+		}
+
 		return (
 			<Fragment>
-				<Button className="gsuite-user-item__fix" compact={ true } onClick={ onFixClickHandler }>
+				<Button compact={ true } onClick={ onFixClickHandler }>
 					{ translate( 'Finish Setup' ) }
 				</Button>
-				{ props.siteSlug && (
+
+				{ siteSlug && (
 					<PendingGSuiteTosNoticeDialog
-						domainName={ props.user.domain }
+						domainName={ user.domain }
 						onClose={ onCloseClickHandler }
 						section={ 'gsuite-users-manage-user' }
-						siteSlug={ props.siteSlug }
-						user={ props.user.email }
+						siteSlug={ siteSlug }
+						user={ user.email }
 						visible={ dialogVisible }
 					/>
 				) }
@@ -70,15 +117,28 @@ function GSuiteUserItem( props ) {
 
 	return (
 		<li>
-			<span className="gsuite-user-item__email">{ props.user.email }</span>
-			{ props.user.agreed_to_terms ? renderManage() : renderFix() }
+			<div className="gsuite-user-item__email">
+				<strong>{ props.user.email }</strong>
+
+				{ renderBadge() }
+			</div>
+
+			<div className="gsuite-user-item__actions">
+				{ renderFinishSetupButton() }
+
+				{ renderManageLink() }
+
+				{ renderMailboxLink() }
+			</div>
 		</li>
 	);
 }
 
 GSuiteUserItem.propTypes = {
-	user: PropTypes.object.isRequired,
+	isSubscriptionActive: PropTypes.bool.isRequired,
 	onClick: PropTypes.func,
+	siteSlug: PropTypes.string,
+	user: PropTypes.object.isRequired,
 };
 
 export default GSuiteUserItem;

@@ -62,9 +62,14 @@ class GSuiteUsersCard extends React.Component {
 	renderDomainWithGSuite( domainName, users ) {
 		// The product name is same for all users as product license is associated to domain
 		// Hence a snapshot of the product name from the first user is sufficient
-		const license = users[ 0 ].product_name;
-		// This ensures display consistency if the API is not ready yet
-		const label = license ? `${ license }: ${ domainName }` : domainName;
+		const productName = users[ 0 ].product_name;
+
+		// Shows at least the domain name if the list of G Suite users has not been retrieved from the API yet
+		const label = productName ? `${ productName }: ${ domainName }` : domainName;
+
+		// Checks if at least one G Suite user is active to determine if the G Suite subscription is active
+		const isSubscriptionActive = users.some( ( user ) => ! user.suspended );
+
 		return (
 			<div key={ `google-apps-user-${ domainName }` } className="gsuite-users-card__container">
 				<SectionHeader label={ label }>
@@ -79,9 +84,10 @@ class GSuiteUsersCard extends React.Component {
 						</Button>
 					) }
 				</SectionHeader>
+
 				<CompactCard className="gsuite-users-card__user-list">
 					<ul className="gsuite-users-card__user-list-inner">
-						{ users.map( ( user, index ) => this.renderUser( user, index ) ) }
+						{ users.map( ( user, index ) => this.renderUser( user, index, isSubscriptionActive ) ) }
 					</ul>
 				</CompactCard>
 			</div>
@@ -96,7 +102,7 @@ class GSuiteUsersCard extends React.Component {
 		return this.renderDomainWithGSuite( domain.name, users );
 	}
 
-	renderUser( user, index ) {
+	renderUser( user, index, isSubscriptionActive ) {
 		if ( user.error ) {
 			let status = 'is-warning',
 				text = user.error,
@@ -134,6 +140,7 @@ class GSuiteUsersCard extends React.Component {
 			<GSuiteUserItem
 				key={ `google-apps-user-${ user.domain }-${ index }` }
 				user={ user }
+				isSubscriptionActive={ isSubscriptionActive }
 				onClick={ this.generateClickHandler( user ) }
 				siteSlug={ this.props.selectedSiteSlug }
 			/>
