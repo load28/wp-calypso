@@ -57,10 +57,8 @@ function Items( { list, listItems, owner } ) {
 	}
 	return (
 		<>
-			<ItemAdder key="item-adder" list={ list } listItems={ listItems } owner={ owner } />
 			{ listItems?.length > 0 && (
 				<>
-					<hr className="list-manage__subscriptions-separator" />
 					<h1 className="list-manage__subscriptions-header">Added sites</h1>
 					{ listItems.map( ( item ) => (
 						<ListItem
@@ -70,8 +68,10 @@ function Items( { list, listItems, owner } ) {
 							item={ item }
 						/>
 					) ) }
+					<hr className="list-manage__subscriptions-separator" />
 				</>
 			) }
+			<ItemAdder key="item-adder" list={ list } listItems={ listItems } owner={ owner } />
 		</>
 	);
 }
